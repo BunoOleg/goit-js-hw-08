@@ -1,42 +1,40 @@
 import throttle from 'lodash.throttle';
 
-const formRef = document.querySelector('.feedback-form');
-const inputRef = document.querySelector('[name="email"]');
-const textAreaRef = document.querySelector('[name="message"]');
+const refs = {
+  form: document.querySelector('.feedback-form'),
+  input: document.querySelector('[name="email"]'),
+  textarea: document.querySelector('[name="message"]'),
+};
+
+const onResetPage = () => {
+  let currentData = localStorage.getItem('feedback-form-state');
+  if (currentData) {
+    currentData = JSON.parse(currentData);
+    Object.entries(currentData).forEach(([name, value]) => {
+      refs.form.elements[name].value = value;
+    });
+  }
+};
 
 onResetPage();
 
-formRef.addEventListener('input', throttle(onInputHandler, 500));
-
-function onInputHandler(e) {
-  let currentLocalStorage = localStorage.setItem(
+const onInputHandler = () => {
+  localStorage.setItem(
     'feedback-form-state',
-    JSON.stringify({ email: inputRef.value, message: textAreaRef.value }),
+    JSON.stringify({ email: refs.input.value, message: refs.textarea.value }),
   );
-  currentLocalStorage ? JSON.parse(localStorage.getItem('feedback-form-state')) : {};
-}
+};
 
-formRef.addEventListener('submit', onSubmitHandler);
-
-function onSubmitHandler(e) {
+const onSubmitHandler = e => {
   e.preventDefault();
-  // const {
-  //     elements: { email, message }
-  // } = e.currentTarget;
-
-  const formData = new FormData(formRef);
-  formData.forEach((value, name) => console.log(value, name));
+  const formData = new FormData(e.currentTarget);
+  formData.forEach((value, name) => {
+    console.log(value, name);
+  });
 
   localStorage.removeItem('feedback-form-state');
   e.currentTarget.reset();
-}
+};
 
-function onResetPage() {
-  let currentLocalStorage = localStorage.getItem('feedback-form-state');
-  if (currentLocalStorage) {
-    currentLocalStorage = JSON.parse(currentLocalStorage);
-    Object.entries(currentLocalStorage).forEach(([name, value]) => {
-      formRef.elements[name].value = value;
-    });
-  }
-}
+refs.form.addEventListener('input', throttle(onInputHandler, 500));
+refs.form.addEventListener('submit', onSubmitHandler);
